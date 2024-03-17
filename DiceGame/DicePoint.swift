@@ -6,3 +6,13 @@
 //
 
 import Foundation
+class point {
+    let dice1 = 1
+    let dice2 = 2
+    let dice3 = 3
+    let dice4 = 4
+    let dice5 = 5
+    let dice6 = 6
+    }
+
+
