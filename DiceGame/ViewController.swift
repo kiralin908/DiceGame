@@ -21,7 +21,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var player1View: UIView!
     @IBOutlet weak var player2View: UIView!
     
-    @IBOutlet weak var diceImage: UIImageView!
+    @IBOutlet weak var diceImage1: UIImageView!
+    @IBOutlet weak var diceImage2: UIImageView!
     
     @IBOutlet weak var rollButton: UIButton!
     @IBOutlet weak var holdButton: UIButton!
@@ -39,23 +40,39 @@ class ViewController: UIViewController {
     //宣告目前是哪一個玩家的回合，之後進行判斷會比較清楚
     var isPlayer1Turn = true
     
+    //設定兩個隨機的骰子顯示圖片
+    func diceRandom() -> (Int,Int) {
+        let dice1 = Int.random(in: 1...6)
+        let dice2 = Int.random(in: 1...6)
+        diceImage1.image = UIImage(named: diceImageView[dice1 - 1])
+        diceImage2.image = UIImage(named: diceImageView[dice2 - 1])
+        return (dice1, dice2)
+    }
+    
     //切換玩家
     func togglePlayer() {
         isPlayer1Turn.toggle()
-        }
+    }
     
     //設定遊戲結束時顯示對話框
     func gameEnd(winner: String) {
         let alertController = UIAlertController(title: "Game Over!", message: "\(winner)獲勝!", preferredStyle: .alert)
         alertController.addAction(UIAlertAction(title: "確定", style: .default, handler: nil))
         present(alertController, animated: true,completion: nil)
+        diceImage1.image = UIImage(named: diceImageView[0])
+        diceImage2.image = UIImage(named: diceImageView[0])
+        player1TotalLabel.text = "0"
+        player1DicePointLabel.text = "0"
+        player2TotalLabel.text = "0"
+        player2DicePointLabel.text = "0"
     }
     
     //重置遊戲
     func resetGame() {
+        diceImage1.image = UIImage(named: diceImageView[0])
+        diceImage2.image = UIImage(named: diceImageView[0])
         player1Total = 0
         player2Total = 0
-        currentPlayerDicePoint = 0
         player1TotalLabel.text = "0"
         player2TotalLabel.text = "0"
         player1DicePointLabel.text = "0"
@@ -83,23 +100,45 @@ class ViewController: UIViewController {
         rollButton.layer.cornerRadius = 20
         holdButton.layer.cornerRadius = 20
         resetButton.layer.cornerRadius = 20
-        
-        
     }
     
     @IBAction func roll(_ sender: UIButton) {
+        let (dice1,dice2) = diceRandom()
+        //判斷兩個骰子都是1，總分歸0，切換玩家
+        if dice1 == 1 && dice2 == 1 {
+            currentPlayerDicePoint = 0
+            if isPlayer1Turn {
+                player1Total = 0
+                player1TotalLabel.text = "0"
+                player1DicePoint = 0
+                player1DicePointLabel.text = "0"
+            } else {
+                player2Total = 0
+                player2TotalLabel.text = "0"
+                player2DicePoint = 0
+                player2DicePointLabel.text = "0"
+            }
+            togglePlayer()
+            updatePlayerViewBackground()
+            return
+        }
+        //判斷如果其中一個骰子擲到1，點數歸0，切換玩家
+        if dice1 == 1 || dice2 == 1 {
+            currentPlayerDicePoint = 0
+            if isPlayer1Turn {
+                player1DicePoint = 0
+                player1DicePointLabel.text = "0"
+            } else {
+                player2DicePoint = 0
+                player2DicePointLabel.text = "0"
+            }
         
-        //生出隨機的骰子點數
-        let randomDice = diceImageView.randomElement()!
-        let randomDiceIndex = Int.random(in: 0..<diceImageView.count)
-        
-        //顯示骰子圖片
-        let diceImageName = diceImageView[randomDiceIndex]
-        diceImage.image = UIImage(named: diceImageName)
-        
+            togglePlayer()
+            updatePlayerViewBackground()
+            return
+        }
         //判斷每一回合玩家的分數及總分
-        let currentDicePoint = randomDiceIndex + 1
-        currentPlayerDicePoint += currentDicePoint
+        currentPlayerDicePoint += dice1 + dice2
         if isPlayer1Turn {
             updatePlayerViewBackground()
             player1DicePoint = currentPlayerDicePoint
@@ -118,15 +157,6 @@ class ViewController: UIViewController {
                 return
             }
             player2DicePointLabel.text = "\(player2DicePoint)"
-        }
-        
-        //如果骰子擲到1，點數歸0，切換玩家
-        if currentDicePoint == 1 {
-            togglePlayer()
-            updatePlayerViewBackground()
-            currentPlayerDicePoint = 0
-            player1DicePointLabel.text = "0"
-            player2DicePointLabel.text = "0"
         }
     }
     
@@ -151,15 +181,11 @@ class ViewController: UIViewController {
             }
             player2TotalLabel.text = "\(player2Total)"
         }
-        
         togglePlayer()
         updatePlayerViewBackground()
-        
         currentPlayerDicePoint = 0
         player1DicePointLabel.text = "0"
         player2DicePointLabel.text = "0"
-        
-        
     }
     
     @IBAction func reset(_ sender: UIButton) {
